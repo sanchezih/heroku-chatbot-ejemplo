@@ -4,7 +4,7 @@ var request = require("request");
 var bodyParser = require("body-parser");
 
 var app = express();
-app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 // configurar el puerto y el mensaje en caso de exito
@@ -37,39 +37,42 @@ app.get('/webhook', (req, res) => {
 
     // Your verify token. Should be a random string.
     let VERIFY_TOKEN = process.env.VERIFICATION_TOKEN;
-      
+
     // Parse the query params
     let mode = req.query['hub.mode'];
     let token = req.query['hub.verify_token'];
     let challenge = req.query['hub.challenge'];
-      
+
     // Checks if a token and mode is in the query string of the request
     if (mode && token) {
-    
-      // Checks the mode and token sent is correct
-      if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-        
-        // Responds with the challenge token from the request
-        console.log('WEBHOOK_VERIFIED');
-        res.status(200).send(challenge);
-      
-      } else {
-        // Responds with '403 Forbidden' if verify tokens do not match
-        res.sendStatus(403);      
-      }
+
+        // Checks the mode and token sent is correct
+        if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+
+            // Responds with the challenge token from the request
+            console.log('WEBHOOK_VERIFIED');
+            res.status(200).send(challenge);
+
+        } else {
+            // Responds with '403 Forbidden' if verify tokens do not match
+            res.sendStatus(403);
+        }
     }
-  });
+});
 
-
+app.get('/test', (req, res) => {
+    let mensaje = 'anda bien';
+    res.status(200).send(mensaje);
+});
 
 // Todos eventos de mesenger sera apturados por esta ruta
 app.post("/webhook", function (req, res) {
     // Verificar si el vento proviene del pagina asociada
     if (req.body.object == "page") {
         // Si existe multiples entradas entraas
-        req.body.entry.forEach(function(entry) {
+        req.body.entry.forEach(function (entry) {
             // Iterara todos lo eventos capturados
-            entry.messaging.forEach(function(event) {
+            entry.messaging.forEach(function (event) {
                 if (event.message) {
                     process_event(event);
                 }
@@ -81,33 +84,33 @@ app.post("/webhook", function (req, res) {
 
 
 // Funcion donde se procesara el evento
-function process_event(event){
+function process_event(event) {
     // Capturamos los datos del que genera el evento y el mensaje 
     var senderID = event.sender.id;
     var message = event.message;
-    
+
     // Si en el evento existe un mensaje de tipo texto
-    if(message.text){
+    if (message.text) {
         // Crear un payload para un simple mensaje de texto
         var response = {
             "text": 'Enviaste este mensaje: ' + message.text
         }
     }
-    
+
     // Enviamos el mensaje mediante SendAPI
     enviar_texto(senderID, response);
 }
 
 // Funcion donde el chat respondera usando SendAPI
-function enviar_texto(senderID, response){
+function enviar_texto(senderID, response) {
     // Construcicon del cuerpo del mensaje
     let request_body = {
         "recipient": {
-          "id": senderID
+            "id": senderID
         },
         "message": response
     }
-    
+
     // Enviar el requisito HTTP a la plataforma de messenger
     request({
         "uri": "https://graph.facebook.com/v2.6/me/messages",
@@ -116,9 +119,9 @@ function enviar_texto(senderID, response){
         "json": request_body
     }, (err, res, body) => {
         if (!err) {
-          console.log('Mensaje enviado!')
+            console.log('Mensaje enviado!')
         } else {
-          console.error("No se puedo enviar el mensaje:" + err);
+            console.error("No se puedo enviar el mensaje:" + err);
         }
-    }); 
+    });
 }
