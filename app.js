@@ -8,7 +8,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 // configurar el puerto y el mensaje en caso de exito
-app.listen((process.env.PORT || 5000), () => console.log('El servidor webhook esta escuchando!'));
+var listener = app.listen((process.env.PORT || 5000), () =>
+    console.log('El servidor webhook esta escuchando en el puerto ' + listener.address().port)
+);
 
 // Ruta de la pagina index
 app.get("/", function (req, res) {
@@ -111,7 +113,7 @@ function enviar_texto(senderID, response) {
         "message": response
     }
 
-    // Enviar el requisito HTTP a la plataforma de messenger
+    // Enviar el req HTTP a la plataforma de messenger
     request({
         "uri": "https://graph.facebook.com/v2.6/me/messages",
         "qs": { "access_token": process.env.PAGE_ACCESS_TOKEN },
